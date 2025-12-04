@@ -6,10 +6,12 @@ export default function ProductCard({
     brand,
     productName,
     price,
-    id,
+    _id,
     handleAddToQuantity,
     handleRemoveQuantity,
     handleAddToCart,
+    handleOnEdit,
+    handleOnDelete,
 }) {
     //Output for each ProductCard
     return (
@@ -21,14 +23,22 @@ export default function ProductCard({
         productQuantity={productQuantity}
         handleAddToQuantity={handleAddToQuantity}
         handleRemoveQuantity={handleRemoveQuantity}
-        id={id}
+        id={_id}
         mode={"product"}
         />
         <p>{price}</p>
         <button onClick={() => {
-            handleAddToCart({id, count: productQuantity, price});
+            handleAddToCart({_id, count: productQuantity, price});
         }}>
         Add to Cart
+        </button>
+        <br/>
+        <button onClick={() => handleOnEdit(_id)}>
+            Edit
+        </button>
+        <br/>
+        <button onClick={() => handleOnDelete(_id)}>
+            Delete
         </button>
     </div>
     );

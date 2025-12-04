@@ -1,13 +1,133 @@
 //Everything starts from here
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductsContainer from "./ProductsContainer";
 import NavBar from "./NavBar";
 import CartContainer from "./CartContainer";
+import axios from "axios";
+import ProductForm from "./ProductForm";
 
-//Setting up usestate for functions below, grabbing information needed
-export default function GroceriesAppContainer({products}) {
-    const [productQuantity, setProductQuantity] = useState(
-        products.map((prod) => {
+//**********STARTED ADDING FOR PROJECT 2 HERE */
+//Setting up useState and useEffect for Project 2
+export default function GroceriesAppContainer(){
+  const [productsData, setProductsData] = useState([]);
+  const [formData, setFormData] = useState ({
+    id: "",
+    productName: "",
+    brand: "",
+    image: "",
+    price: ""
+  });
+
+const [postResponse, setPostResponse] = useState("");
+const [isEditing, setIsEditing] = useState(false);
+
+//useEffect
+useEffect(() => {
+  handleProductsDB();
+}, [postResponse]);
+
+//Handlers
+//GET Data from DB handler
+const handleProductsDB = async() => {
+  try{
+      const response = await axios.get("http://localhost:3000/products");
+      setProductsData(response.data);
+        } catch (error) {
+            console.log(error.message);
+        }
+};
+//
+
+//Handle the reset form
+    const handleResetForm = () => {
+        setFormData({
+          id: "",
+          productName: "",
+          brand: "",
+          image: "",
+          price: ""
+        });
+    };
+
+    //Handle the submission of data
+    const handleOnSubmit = async(e) => {
+        e.preventDefault();
+        try {
+            if (isEditing) {
+                handleOnUpdate();
+                handleResetForm();
+                setIsEditing(false);
+            } else {
+                await axios
+                .post("http://localhost:3000/products", formData)
+                .then((response) => {
+                    setPostResponse(response.data);
+                    console.log(response);
+                })
+                .then(() => handleResetForm());
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+
+    //Handle the onChange event for the form
+    const handleOnChange = (e) => {
+        setFormData((prevData) => {
+            return {...prevData, [e.target.name]: e.target.value };
+        })
+    };
+
+    //Handle to delete one product by id
+    const handleOnDelete = async(_id) => {
+        try{
+            const response = await axios.delete(`http://localhost:3000/products/${_id}`);
+            setPostResponse(response.data); 
+            console.log(response);
+        } catch(error) {
+            console.log(error.message);
+        }
+    };
+
+    //Handle the editing of one product by its id
+    const handleOnEdit = async (_id) => {
+        try {
+            const response =  await axios.get(
+                `http://localhost:3000/products/${_id}`
+            );
+            const product = response.data;
+            setFormData({
+                _id: product._id || "",
+                id: product.id || "",
+                productName: product.productName || "",
+                brand: product.brand || "",
+                image: product.image || "",
+                price: product.price || "",
+            });
+            setIsEditing(true);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    //Handle updating the API patch route
+    const handleOnUpdate = async () => {
+        try{
+            const result = await axios.patch(
+                `http://localhost:3000/products/${formData._id}`, 
+                formData
+            );
+            setPostResponse({message: result.data.message, data: result.data.DATE});
+        } catch(error) {
+            console.log(error);
+        }
+    };
+
+
+//
+//////this below from project 1
+const [productQuantity, setProductQuantity] = useState(
+        productsData.map((prod) => {
             return {
                 id: prod.id,
                 count: 0,
@@ -50,7 +170,7 @@ const handleRemoveQuantity = (id, mode) => {
 
 //A function to add items to cart
 const handleAddToCart = (productToAdd) => {
-    const currentProduct = products.find((prod) => prod.id === productToAdd.id);
+    const currentProduct = productsData.find((prod) => prod.id === productToAdd.id);
     //to check if it is in the cart already
     const productInCart = cart.find((item) => item.id === productToAdd.id);
     if(productToAdd.count === 0) {
@@ -121,15 +241,31 @@ return (
         <div>
             <NavBar isCartEmpty={cart.length === 0} />
         </div>
+        <div className="product-form">
+          <ProductForm 
+          id={formData.id}
+          productName={formData.productName}
+          brand={formData.brand}
+          image={formData.image}
+          price={formData.price}
+          handleOnSubmit={handleOnSubmit}
+          handleOnChange={handleOnChange}
+          isEditing={isEditing}
+          />
+          <p style ={{color: "green"}}>{postResponse?.message}</p>
+        </div>
         <div className="GroceriesApp-Container">
             <div className="ProductsContainer">
             <ProductsContainer 
-            products={products} 
+            products={productsData} 
             productQuantity={productQuantity}
             handleAddToQuantity={handleAddToQuantity}
             handleRemoveQuantity={handleRemoveQuantity}
             handleAddToCart={handleAddToCart}
             handleRemoveFromCart={handleRemoveFromCart}
+            //Added for project 2
+            handleOnDelete={handleOnDelete}
+            handleOnEdit={handleOnEdit}
             />
         </div>
         <div className="CartContainer">

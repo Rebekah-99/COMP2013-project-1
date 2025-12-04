@@ -6,7 +6,9 @@ export default function ProductsContainer({
     handleAddToQuantity,
     handleRemoveQuantity,
     handleAddToCart,
-
+    //Added for project 2
+    handleOnDelete,
+    handleOnEdit,
 }){
 
     return (
@@ -17,7 +19,8 @@ export default function ProductsContainer({
 
                 return (
                     <ProductCard
-                    key={product.id}
+                    key={product._id}
+                    _id={product._id}
                     id={product.id}
                     productQuantity={quantity}
                     image={product.image}
@@ -27,6 +30,9 @@ export default function ProductsContainer({
                     handleAddToQuantity={handleAddToQuantity}
                     handleRemoveQuantity={handleRemoveQuantity}
                     handleAddToCart={handleAddToCart}
+                    //Added for project 2
+                    handleOnDelete={handleOnDelete}
+                    handleOnEdit={handleOnEdit}
                     />
                 );
             })}
